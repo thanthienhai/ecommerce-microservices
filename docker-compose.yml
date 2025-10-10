@@ -61,12 +61,12 @@ services:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:latest
     command: [ "start-dev", "--import-realm" ]
+    restart: on-failure
     environment:
-      DB_VENDOR: MYSQL
-      DB_ADDR: mysql
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_PASSWORD: password
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://keycloak-mysql:3306/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
@@ -79,8 +79,9 @@ services:
 
   # Apache Kafka (Zookeeper) Config
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.0.1
     container_name: zookeeper
+    restart: on-failure
     ports:
       - "2181:2181"
     environment:
@@ -89,8 +90,9 @@ services:
 
   # Apache Kafka (Broker) Config
   broker:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.0.1
     container_name: broker
+    restart: on-failure
     ports:
       - "9092:9092"
     depends_on:
@@ -103,6 +105,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
 
   # Zipkin Config
@@ -187,6 +190,7 @@ services:
     container_name: inventory-service
     image: ibatulanandjp/inventory-service:latest
     pull_policy: always
+    restart: on-failure
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-inventory:3306/inventory_service?allowPublicKeyRetrieval=true&useSSL=false
       - SPRING_DATASOURCE_USERNAME=ibatulanand
@@ -205,6 +209,7 @@ services:
     container_name: notification-service
     image: ibatulanandjp/notification-service:latest
     pull_policy: always
+    restart: on-failure
     environment:
       - SERVER_PORT=8080
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka
